@@ -1,8 +1,28 @@
 const database = require("./database");
 
 const getMovies = (req, res) => {
+  const max_year = req.query.max_year
+  const max_duration = req.query.max_duration
+  let request = "select * from movies"
+  let requestValues = []
+
+  if(max_year != null) {
+    request += " where year <= ?"
+    requestValues.push(max_year)
+
+    if(max_duration != null) {
+      request += " and duration <= ?"
+      requestValues.push(max_duration)
+    }
+  }
+
+  else if(max_duration != null) {
+    request += " where duration <= ?"
+    requestValues.push(max_duration)
+  }
+
   database
-    .query("select * from movies")
+    .query(request,requestValues)
     .then(([movies]) => {
       res.json(movies);
     })
