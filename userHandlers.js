@@ -1,5 +1,4 @@
 const database = require("./database");
-
 const getUsers = (req, res) => {
   const initialSql = "select id, firstname, lastname,email,city,language from users;";
   const where = [];
@@ -97,6 +96,8 @@ const updateUser = (req, res) => {
 
 const deleteUser = (req, res) => {
   const id = parseInt(req.params.id);
+  const token = req.payload.sub;
+  console.log(token);
 
   database
     .query("delete from users where id = ?", [id])
@@ -113,10 +114,30 @@ const deleteUser = (req, res) => {
     });
 };
 
+const getUserByEmailWithPasswordAndPassToNext = (req,res,next) => {
+  const {email} = req.body
+  database
+  .query(
+    "select * from users where email=?",[email]
+  )
+  .then(([results])=> {
+    if (results.length) {
+      req.user = results[0];
+      next()
+    }
+    else {res.sendStatus(401)}
+  } )
+  .catch((err)=> {
+    console.log(err);
+    res.status(500).send("Error retrieving data from database");
+  })
+}
+
 module.exports = {
   getUsers,
   getUserById,
   postUser,
   updateUser,
   deleteUser,
+  getUserByEmailWithPasswordAndPassToNext,
 };
